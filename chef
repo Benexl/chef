@@ -1,40 +1,110 @@
 #!/usr/bin/env sh
 #
-content="$(cat)"
-language="$(printf '%s' "$content" | magika - --label)"
 
-case "$language" in
-"-: shell")
-  result="$(printf '%s' "$content" | bwrap \
-    --ro-bind /usr /usr \
-    --symlink usr/lib64 /lib64 \
-    --proc /proc \
-    --dev /dev \
-    --unshare-pid \
-    --new-session \
-    sh)"
+case "$1" in
+exec)
+  while [ $# -gt 0 ]; do
+    shift_count=1
+    case "$1" in
+    --file-path)
+      FILE_PATH=$2
+      shift_count=2
+      ;;
+    --file-extension)
+      FILE_LANG=$2
+      shift_count=2
+      ;;
+    --selection-start)
+      SELECTION_START=$2
+      shift_count=2
+      ;;
+    --selection-end)
+      SELECTION_END=$2
+      shift_count=2
+      ;;
+    esac
+    shift "$shift_count"
+  done
+  FILE_CONTENT="$(sed -n "${SELECTION_START},${SELECTION_END}p" "$FILE_PATH")"
+
+  if [ -z "$FILE_LANG" ]; then
+    FILE_LANG="$(printf '%s\n' "$FILE_CONTENT" | magika - --label)"
+  fi
+
+  case "$FILE_LANG" in
+  "-: shell")
+    result="$(printf '%s\n' "$FILE_CONTENT" | bwrap \
+      --ro-bind /usr /usr \
+      --symlink usr/lib64 /lib64 \
+      --proc /proc \
+      --dev /dev \
+      --unshare-pid \
+      --new-session \
+      sh)"
+    ;;
+  "-: php")
+    result="$(printf '%s\n' "$FILE_CONTENT" | bwrap \
+      --ro-bind /usr /usr \
+      --symlink usr/lib64 /lib64 \
+      --proc /proc \
+      --dev /dev \
+      --unshare-pid \
+      --new-session \
+      php)"
+    ;;
+  "-: python")
+    result="$(printf '%s\n' "$FILE_CONTENT" | bwrap \
+      --ro-bind /usr /usr \
+      --symlink usr/lib64 /lib64 \
+      --proc /proc \
+      --dev /dev \
+      --unshare-pid \
+      --new-session \
+      python)"
+    ;;
+  esac
+
+  printf '%s\n' "$result" | kitten clipboard
+  printf '%s\n' "$result"
   ;;
-"-: php")
-  result="$(printf '%s' "$content" | bwrap \
-    --ro-bind /usr /usr \
-    --symlink usr/lib64 /lib64 \
-    --proc /proc \
-    --dev /dev \
-    --unshare-pid \
-    --new-session \
-    php)"
-  ;;
-"-: python")
-  result="$(printf '%s' "$content" | bwrap \
-    --ro-bind /usr /usr \
-    --symlink usr/lib64 /lib64 \
-    --proc /proc \
-    --dev /dev \
-    --unshare-pid \
-    --new-session \
-    python)"
+fmt)
+  while [ $# -gt 0 ]; do
+    shift_count=1
+    case "$1" in
+    --file-path)
+      FILE_PATH=$2
+      shift_count=2
+      ;;
+    --file-extension)
+      FILE_LANG=$2
+      shift_count=2
+      ;;
+    --selection-start)
+      SELECTION_START=$2
+      shift_count=2
+      ;;
+    --selection-end)
+      SELECTION_END=$2
+      shift_count=2
+      ;;
+    esac
+    shift "$shift_count"
+  done
+  FILE_CONTENT="$(sed -n "${SELECTION_START},${SELECTION_END}p" "$FILE_PATH")"
+
+  if [ -z "$FILE_LANG" ]; then
+    FILE_LANG="$(printf '%s\n' "$FILE_CONTENT" | magika - --label)"
+  fi
+  case "$FILE_LANG" in
+  "-: php")
+    printf '%s' "$FILE_CONTENT" | mago format --stdin-input
+    ;;
+  "-: python")
+    printf '%s' "$FILE_CONTENT" | ruff format
+    ;;
+  "-: shell")
+    printf '%s' "$FILE_CONTENT" | shfmt
+    ;;
+  esac
   ;;
 esac
-
-printf '%s' "$result" | kitten clipboard
-printf '%s' "$result"
