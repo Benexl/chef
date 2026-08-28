@@ -5,33 +5,36 @@ language="$(printf '%s' "$content" | magika - --label)"
 
 case "$language" in
 "-: shell")
-  printf '%s' "$content" | bwrap \
+  result="$(printf '%s' "$content" | bwrap \
     --ro-bind /usr /usr \
     --symlink usr/lib64 /lib64 \
     --proc /proc \
     --dev /dev \
     --unshare-pid \
     --new-session \
-    sh
+    sh)"
   ;;
 "-: php")
-  printf '%s' "$content" | bwrap \
+  result="$(printf '%s' "$content" | bwrap \
     --ro-bind /usr /usr \
     --symlink usr/lib64 /lib64 \
     --proc /proc \
     --dev /dev \
     --unshare-pid \
     --new-session \
-    php
+    php)"
   ;;
 "-: python")
-  printf '%s' "$content" | bwrap \
+  result="$(printf '%s' "$content" | bwrap \
     --ro-bind /usr /usr \
     --symlink usr/lib64 /lib64 \
     --proc /proc \
     --dev /dev \
     --unshare-pid \
     --new-session \
-    python
+    python)"
   ;;
 esac
+
+printf '%s' "$result" | wl-copy
+printf '%s' "$result"
