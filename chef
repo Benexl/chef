@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+#
+content="$(cat)"
+language="$(printf '%s' "$content" | magika - --label)"
+
+case "$language" in
+"-: shell")
+  printf '%s' "$content" | bwrap \
+    --ro-bind /usr /usr \
+    --symlink usr/lib64 /lib64 \
+    --proc /proc \
+    --dev /dev \
+    --unshare-pid \
+    --new-session \
+    sh
+  ;;
+"-: php")
+  printf '%s' "$content" | bwrap \
+    --ro-bind /usr /usr \
+    --symlink usr/lib64 /lib64 \
+    --proc /proc \
+    --dev /dev \
+    --unshare-pid \
+    --new-session \
+    php
+  ;;
+"-: python")
+  printf '%s' "$content" | bwrap \
+    --ro-bind /usr /usr \
+    --symlink usr/lib64 /lib64 \
+    --proc /proc \
+    --dev /dev \
+    --unshare-pid \
+    --new-session \
+    python
+  ;;
+esac
