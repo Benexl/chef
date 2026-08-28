@@ -36,5 +36,5 @@ case "$language" in
   ;;
 esac
 
-printf '%s' "$result" | wl-copy
+printf '%s' "$result" | kitten clipboard
 printf '%s' "$result"
